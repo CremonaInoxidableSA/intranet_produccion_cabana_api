@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date
+from sqlalchemy import Column, Integer, String, Date, Boolean
 
 from .database import Base
 
@@ -12,3 +12,4 @@ class Pallet(Base):
     lote = Column(String(255), unique=True, nullable=True)
     fecha_carga = Column(Date, nullable=True)
     cantidad = Column(Integer, nullable=True)
+    estado = Column(Boolean, nullable=False)
