@@ -6,7 +6,7 @@ from sql.models import Pallet
 
 
 router = APIRouter(
-    prefix="/lista-pallets",
+    prefix="/lista_pallets",
     tags=["Pallets"]
 )
 
