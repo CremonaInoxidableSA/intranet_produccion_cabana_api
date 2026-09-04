@@ -1,0 +1,9 @@
+# Archivos
+
+.env*
+__init__.py*
+
+
+# Carpetas
+\__pycache__*
+\venv*
