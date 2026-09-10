@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes import pallets, cargar_pallet, detalles_pallet, editar_pallet
+from routes.productos import cargar_producto, retirar_producto, crear_producto, lista_productos
+from routes.pallets import crear_pallet, detalles_pallet, lista_pallets
 
 app = FastAPI(
     title="API Produccion Cabaña - Gestión de Pallets",
@@ -15,10 +16,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(pallets.router)
-app.include_router(cargar_pallet.router)
+app.include_router(crear_pallet.router)
+app.include_router(lista_pallets.router)
 app.include_router(detalles_pallet.router)
-app.include_router(editar_pallet.router)
+
+app.include_router(crear_producto.router)
+app.include_router(cargar_producto.router)
+app.include_router(retirar_producto.router)
+app.include_router(lista_productos.router)
+
 
 @app.get("/")
 def root():
