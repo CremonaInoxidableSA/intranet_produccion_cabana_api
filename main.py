@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes.productos import cargar_producto, retirar_producto, crear_producto, lista_productos
+from routes.movimientos import retirar_producto
+from routes.productos import cargar_producto, crear_producto, lista_productos
 from routes.pallets import crear_pallet, detalles_pallet, lista_pallets
 
 app = FastAPI(

@@ -52,6 +52,28 @@ class PalletsProductos(Base):
     )
 
 
+class CargasDescargas(Base):
+    __tablename__ = "Cargas_Descargas"
+
+    id_carga_descarga = Column(Integer, primary_key=True, index=True)
+    tipo = Column(String(20), nullable=False)
+    id_pallet = Column(Integer, ForeignKey("Pallets.id_pallet", onupdate="CASCADE"), nullable=False)
+    id_producto = Column(Integer, ForeignKey("Productos.id_producto", onupdate="CASCADE", ondelete="RESTRICT"), nullable=False)
+    cantidad_anterior = Column(Integer, nullable=False)
+    cantidad_modificada = Column(Integer, nullable=False)
+    peso_kg = Column(String(50), nullable=True)
+    motivo = Column(String(255), nullable=True)
+    usuario = Column(String(100), nullable=False)
+    fecha_carga_descarga = Column(DateTime, default=func.current_timestamp(), nullable=False)
+
+    pallet = relationship("Pallets")
+    producto = relationship("Productos")
+
+    __table_args__ = (
+        CheckConstraint("tipo IN ('carga', 'descarga')", name='check_tipo_carga_descarga'),
+    )
+
+
 class Movimientos(Base):
     __tablename__ = "Movimientos"
 

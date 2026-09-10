@@ -5,7 +5,7 @@ from sqlalchemy import update
 from typing import cast
 
 from sql.database import get_db
-from sql.models import Pallets, Productos, PalletsProductos, Movimientos
+from sql.models import Pallets, Productos, PalletsProductos, Movimientos, CargasDescargas
 from sql.schemas import RetiroPalletRequest, MovimientoResponse
 
 router = APIRouter(
@@ -57,13 +57,27 @@ def retirar_producto_del_pallet(
     cantidad_resultante = cantidad_actual - cantidad_retirar
 
     try:
-        db.execute(
-            update(PalletsProductos).where(
-                (PalletsProductos.id_pallet == id_pallet) &
-                (PalletsProductos.id_producto == id_producto)
-            ).values(cantidad_producto=cantidad_resultante)
+        if cantidad_resultante <= 0:
+            db.delete(pallet_producto)
+        else:
+            db.execute(
+                update(PalletsProductos).where(
+                    (PalletsProductos.id_pallet == id_pallet) &
+                    (PalletsProductos.id_producto == id_producto)
+                ).values(cantidad_producto=cantidad_resultante)
+            )
+
+        registro_descarga = CargasDescargas(
+            tipo='descarga',
+            id_pallet=id_pallet,
+            id_producto=id_producto,
+            cantidad_anterior=cantidad_actual,
+            cantidad_modificada=-cantidad_retirar,
+            peso_kg=str(datos_retiro.peso_kg) if datos_retiro.peso_kg is not None else None,
+            motivo=datos_retiro.motivo,
+            usuario=datos_retiro.usuario
         )
-        db.flush()
+        db.add(registro_descarga)
 
         movimiento = Movimientos(
             tipo='ajuste',
@@ -78,6 +92,9 @@ def retirar_producto_del_pallet(
 
         db.add(movimiento)
         db.commit()
+
+        if cantidad_resultante <= 0:
+            return {"mensaje": "Producto retirado y eliminado del pallet"}
 
         return {"mensaje": "Movimiento registrado"}
 
