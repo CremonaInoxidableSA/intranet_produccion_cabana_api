@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, or_
 import logging
-from typing import cast, Dict, List
+from typing import cast, List
 from datetime import datetime, date
 
 from sql.database import get_db
@@ -32,34 +32,38 @@ def obtener_pallet_por_id(
 
     logger.info(f"Obteniendo detalles del pallet ID: {pallet_id}")
 
-    contenido: Dict[str, ProductoDetalleResponse] = {}
+    contenido: List[ProductoDetalleResponse] = []
     productos = pallet.pallet_productos
 
     proximo_vencimiento: date | None = None
     fechas_vencimiento: List[date] = []
 
-    for idx, pallet_producto in enumerate(productos, 1):
+    for pallet_producto in productos:
         producto = pallet_producto.producto
-        producto_id = cast(int, producto.id_producto)
+        id_pallet_producto = cast(int, pallet_producto.id_pallet_producto)
+        producto_codigo = cast(str, producto.codigo)
         producto_nombre = cast(str, producto.nombre)
+        producto_empresa = cast(str, producto.empresa)
+        producto_tipo = cast(str, producto.tipo)
         producto_lote = cast(str | None, pallet_producto.lote)
         producto_fecha_vencimiento = cast(date | None, pallet_producto.fecha_vencimiento)
+        producto_fecha_ingreso = cast(date, pallet_producto.fecha_ingreso)
         cantidad = cast(int, pallet_producto.cantidad_producto)
 
         if producto_fecha_vencimiento is not None:
             fechas_vencimiento.append(producto_fecha_vencimiento)
 
-        clave_producto = producto_nombre
-        if clave_producto in contenido:
-            clave_producto = f"{producto_nombre}_{idx}"
-
-        contenido[clave_producto] = ProductoDetalleResponse(
-            id_producto=producto_id,
+        contenido.append(ProductoDetalleResponse(
+            id_pallet_producto=id_pallet_producto,
+            codigo=producto_codigo,
             nombre=producto_nombre,
+            empresa=producto_empresa,
+            tipo=producto_tipo,
             cantidad=cantidad,
             lote=producto_lote or "",
-            fecha_vencimiento=producto_fecha_vencimiento or date.today()
-        )
+            fecha_vencimiento=producto_fecha_vencimiento or date.today(),
+            fecha_ingreso=producto_fecha_ingreso
+        ))
 
     if fechas_vencimiento:
         proximo_vencimiento = min(fechas_vencimiento)

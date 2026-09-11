@@ -27,7 +27,6 @@ CREATE TABLE Pallets_Productos (
     lote                VARCHAR(50),
     fecha_vencimiento   DATE,
     fecha_ingreso       DATE         NOT NULL,
-    actualizado         TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_pp_pallet   FOREIGN KEY (id_pallet)   REFERENCES Pallets(id_pallet)     ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_pp_producto FOREIGN KEY (id_producto) REFERENCES Productos(id_producto) ON DELETE RESTRICT ON UPDATE CASCADE,
     INDEX idx_pp_producto (id_producto),

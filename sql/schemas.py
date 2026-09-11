@@ -1,15 +1,11 @@
 from pydantic import BaseModel, Field, field_validator
-from typing import Optional, List, ForwardRef, Dict
+from typing import Optional, List, ForwardRef, Literal
 from datetime import date, datetime
 from decimal import Decimal
 
-# ============== Forward References ==============
-# Definimos referencias adelantadas para evitar dependencias circulares
 PalletResponseRef = ForwardRef('PalletResponse')
 ProductoResponseRef = ForwardRef('ProductoResponse')
 
-
-# ============== Producto Schemas ==============
 class ProductoBase(BaseModel):
     nombre: str = Field(..., max_length=150)
     codigo: str = Field(..., max_length=50)
@@ -28,8 +24,6 @@ class ProductoResponse(ProductoBase):
     class Config:
         from_attributes = True
 
-
-# ============== Pallets Schemas ==============
 class PalletBase(BaseModel):
     codigo: str = Field(..., max_length=50)
     tipo: str = Field(..., max_length=50)
@@ -54,8 +48,6 @@ class PalletResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
-# ============== PalletProducto Schemas ==============
 class PalletProductoBase(BaseModel):
     id_pallet: int
     id_producto: int
@@ -79,8 +71,6 @@ class PalletProductoResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
-# ============== Movimiento Schemas ==============
 class MovimientoBase(BaseModel):
     id_pallet_origen: Optional[int] = None
     id_pallet_destino: Optional[int] = None
@@ -95,25 +85,25 @@ class MovimientoBase(BaseModel):
 class MovimientoCreate(MovimientoBase):
     pass
 
-
-# ============== Detalle Pallets Schemas ==============
 class ProductoDetalleResponse(BaseModel):
-    """Producto con cantidad para mostrar en detalles del pallet"""
-    id_producto: int
+    id_pallet_producto: int
+    codigo: str
     nombre: str
+    empresa: str
+    tipo: str
     cantidad: int
     lote: str
     fecha_vencimiento: date
+    fecha_ingreso: date
 
 
 class PalletDetalleResponse(BaseModel):
-    """Respuesta detallada del pallet con todos los productos"""
     id_pallet: int
     codigo: str
     tipo: str
     fecha_compra: Optional[date] = None
     estado: bool
-    contenido: Dict[str, ProductoDetalleResponse]
+    contenido: List[ProductoDetalleResponse]
     proximo_vencimiento: Optional[date] = None
     ultima_actividad: Optional[datetime] = None
     ultima_actividad_usuario: Optional[str] = None
@@ -127,8 +117,6 @@ class MovimientoResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
-# ============== Pallets con Productos (Respuesta Completa) ==============
 class PalletWithProductsResponse(BaseModel):
     id_pallet: int
     codigo: str
@@ -140,14 +128,12 @@ class PalletWithProductsResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
-# ============== Operaciones de Carga y Retiro ==============
 class CargaPalletRequest(BaseModel):
-    """Para cargar producto en un pallet"""
     id_producto: int
     cantidad: int = Field(..., gt=0, description="Cantidad a cargar debe ser mayor a 0")
+    lote: Optional[str] = Field(None, max_length=50)
+    fecha_vencimiento: Optional[date] = None
     usuario: str = Field(..., max_length=50)
-    peso_kg: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
     motivo: Optional[str] = None
     
     @field_validator('cantidad')
@@ -158,11 +144,11 @@ class CargaPalletRequest(BaseModel):
         return v
 
 class RetiroPalletRequest(BaseModel):
-    """Para retirar producto de un pallet"""
+    id_pallet_producto: int
     cantidad_retirar: int = Field(..., gt=0, description="Cantidad a retirar debe ser mayor a 0")
+    peso_kg: Decimal = Field(..., ge=0, decimal_places=2)
     usuario: str = Field(..., max_length=50)
-    peso_kg: Optional[Decimal] = Field(None, ge=0, decimal_places=2)
-    motivo: Optional[str] = None
+    motivo: str = Field(..., max_length=255)
     
     @field_validator('cantidad_retirar')
     @classmethod
@@ -186,6 +172,20 @@ class MovimientoInternoRequest(BaseModel):
         if v <= 0:
             raise ValueError('La cantidad debe ser mayor a 0')
         return v
+
+
+class CargaProductoRequest(BaseModel):
+    id_pallet: int
+    id_producto: int
+    cantidad_producto: int = Field(..., gt=0, description="Cantidad a cargar debe ser mayor a 0")
+    lote: Optional[str] = Field(None, max_length=50)
+    fecha_vencimiento: Optional[date] = None
+    fecha_ingreso: date
+    actualizado: datetime = Field(default_factory=datetime.now)
+
+
+class CargaProductoResponse(BaseModel):
+    mensaje: Literal["Producto cargado correctamente", "El producto no se pudo cargar correctamente"]
 
 
 PalletResponse.model_rebuild()

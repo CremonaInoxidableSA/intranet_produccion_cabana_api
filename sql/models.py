@@ -40,7 +40,6 @@ class PalletsProductos(Base):
     lote = Column(String(50), nullable=True)
     fecha_vencimiento = Column(Date, nullable=True)
     fecha_ingreso = Column(Date, nullable=False)
-    actualizado = Column(DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp(), nullable=False)
 
     pallet = relationship("Pallets", back_populates="pallet_productos")
     producto = relationship("Productos", back_populates="pallet_productos")
