@@ -198,6 +198,19 @@ class RetiroProductoResponse(BaseModel):
     mensaje: Literal["Producto retirado correctamente", "El producto no se pudo retirar correctamente"]
 
 
+class MoverProductoRequest(BaseModel):
+    id_pallet_producto_origen: int
+    id_pallet_destino: int
+    cantidad_producto: int = Field(..., gt=0, description="Cantidad a mover debe ser mayor a 0")
+    usuario: str = Field(..., max_length=50)
+    motivo: Optional[str] = None
+    actualizado: datetime = Field(default_factory=datetime.now)
+
+
+class MoverProductoResponse(BaseModel):
+    mensaje: Literal["Producto movido correctamente", "El producto no se pudo mover correctamente"]
+
+
 PalletResponse.model_rebuild()
 ProductoResponse.model_rebuild()
 PalletProductoResponse.model_rebuild()
