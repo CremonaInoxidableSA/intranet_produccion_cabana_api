@@ -60,9 +60,7 @@ def retirar_producto_del_pallet(
 		si_quedan_productos = db.query(PalletsProductos.id_pallet_producto).filter(
 			PalletsProductos.id_pallet == registro_db.id_pallet
 		).first()
-
-		if not si_quedan_productos:
-			pallet_db.estado = 0
+		pallet_db.estado = 1 if si_quedan_productos else 0
 
 		registrar_carga_descarga(
 			db=db,

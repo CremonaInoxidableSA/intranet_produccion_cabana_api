@@ -38,11 +38,19 @@ class PalletUpdate(BaseModel):
     fecha_compra: Optional[date] = None
     estado: Optional[int] = Field(None, ge=0, le=1)
 
+class PalletContenidoResponse(BaseModel):
+    id_pallet_producto: int
+    id_producto: int
+    cantidad: int
+    lote: str
+    fecha_vencimiento: Optional[date] = None
+
 class PalletResponse(BaseModel):
     id_pallet: int
     codigo: str
     estado: int
     lote: List[str] = []
+    contenido: List[PalletContenidoResponse] = []
     proximo_vencimiento: Optional[date] = None
     
     class Config:
@@ -102,7 +110,7 @@ class PalletDetalleResponse(BaseModel):
     codigo: str
     tipo: str
     fecha_compra: Optional[date] = None
-    estado: bool
+    estado: int
     contenido: List[ProductoDetalleResponse]
     proximo_vencimiento: Optional[date] = None
     ultima_actividad: Optional[datetime] = None
@@ -122,7 +130,7 @@ class PalletWithProductsResponse(BaseModel):
     codigo: str
     tipo: str
     fecha_compra: Optional[date] = None
-    estado: bool
+    estado: int
     productos: List[PalletProductoResponse] = []
     
     class Config:

@@ -6,7 +6,7 @@ from typing import cast, List
 from datetime import datetime, date
 
 from sql.database import get_db
-from sql.models import Pallets, Movimientos
+from sql.models import Pallets, Movimientos, CargasDescargas
 from sql.schemas import PalletDetalleResponse, ProductoDetalleResponse
 
 logging.basicConfig(level=logging.INFO)
@@ -78,18 +78,36 @@ def obtener_pallet_por_id(
             )
         ).order_by(desc(Movimientos.fecha_movimiento)).first()
 
-    ultima_actividad: datetime | None = None
+    carga_descarga_reciente = db.query(CargasDescargas).filter(
+        CargasDescargas.id_pallet == pallet_id
+    ).order_by(desc(CargasDescargas.fecha_carga_descarga)).first()
+
+    # La fecha principal de actividad ahora se toma del timestamp del pallet.
+    ultima_actividad = cast(datetime | None, pallet.actualizado)
     ultima_actividad_usuario: str | None = None
-    if movimiento_reciente:
-        ultima_actividad = cast(datetime, movimiento_reciente.fecha_movimiento)
-        ultima_actividad_usuario = cast(str, movimiento_reciente.usuario)
+
+    candidatos_usuario: list[tuple[datetime, str]] = []
+    if movimiento_reciente is not None:
+        fecha_movimiento = cast(datetime | None, movimiento_reciente.fecha_movimiento)
+        usuario_movimiento = cast(str | None, movimiento_reciente.usuario)
+        if fecha_movimiento is not None and usuario_movimiento is not None and usuario_movimiento != "":
+            candidatos_usuario.append((fecha_movimiento, usuario_movimiento))
+
+    if carga_descarga_reciente is not None:
+        fecha_carga_descarga = cast(datetime | None, carga_descarga_reciente.fecha_carga_descarga)
+        usuario_carga_descarga = cast(str | None, carga_descarga_reciente.usuario)
+        if fecha_carga_descarga is not None and usuario_carga_descarga is not None and usuario_carga_descarga != "":
+            candidatos_usuario.append((fecha_carga_descarga, usuario_carga_descarga))
+
+    if candidatos_usuario:
+        ultima_actividad_usuario = max(candidatos_usuario, key=lambda x: x[0])[1]
 
     respuesta = PalletDetalleResponse(
         id_pallet=cast(int, pallet.id_pallet),
         codigo=cast(str, pallet.codigo),
         tipo=cast(str, pallet.tipo),
         fecha_compra=cast(date | None, pallet.fecha_compra),
-        estado=cast(bool, pallet.estado),
+        estado=cast(int, pallet.estado),
         contenido=contenido,
         proximo_vencimiento=proximo_vencimiento,
         ultima_actividad=ultima_actividad,

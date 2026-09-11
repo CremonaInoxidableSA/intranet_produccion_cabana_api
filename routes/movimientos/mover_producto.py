@@ -132,14 +132,12 @@ def mover_producto_entre_pallets(
 		quedan_productos_en_origen = db.query(PalletsProductos.id_pallet_producto).filter(
 			PalletsProductos.id_pallet == id_pallet_origen
 		).first()
-		if not quedan_productos_en_origen:
-			pallet_origen_db.estado = 0
+		pallet_origen_db.estado = 1 if quedan_productos_en_origen else 0
 
 		quedan_productos_en_destino = db.query(PalletsProductos.id_pallet_producto).filter(
 			PalletsProductos.id_pallet == pallet_destino_db.id_pallet
 		).first()
-		if quedan_productos_en_destino:
-			pallet_destino_db.estado = 1
+		pallet_destino_db.estado = 1 if quedan_productos_en_destino else 0
 
 		movimiento = Movimientos(
 			tipo="traslado",
