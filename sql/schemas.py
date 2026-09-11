@@ -181,6 +181,8 @@ class CargaProductoRequest(BaseModel):
     lote: Optional[str] = Field(None, max_length=50)
     fecha_vencimiento: Optional[date] = None
     fecha_ingreso: date
+    usuario: str = Field(..., max_length=100)
+    motivo: Optional[str] = Field(None, max_length=255)
     actualizado: datetime = Field(default_factory=datetime.now)
 
 
@@ -191,6 +193,9 @@ class CargaProductoResponse(BaseModel):
 class RetiroProductoRequest(BaseModel):
     id_pallet_producto: int
     cantidad_producto: int = Field(..., gt=0, description="Cantidad a retirar debe ser mayor a 0")
+    peso_kg: Decimal = Field(..., ge=0, decimal_places=2)
+    usuario: str = Field(..., max_length=100)
+    motivo: Optional[str] = Field(None, max_length=255)
     actualizado: datetime = Field(default_factory=datetime.now)
 
 

@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import Any, cast
 
+from routes.registros.registrar_carga_descarga import registrar_carga_descarga
 from sql.database import get_db
-from sql.models import CargasDescargas, Pallets, PalletsProductos, Productos
+from sql.models import Pallets, PalletsProductos, Productos
 from sql.schemas import CargaProductoRequest, CargaProductoResponse
 
 
@@ -72,16 +73,17 @@ def cargar_producto_en_pallet(
 			pallet_db.estado = 1
 		pallet_db.actualizado = fecha_operacion
 
-		carga = CargasDescargas(
+		registrar_carga_descarga(
+			db=db,
 			tipo="carga",
 			id_pallet=payload.id_pallet,
 			id_producto=payload.id_producto,
 			cantidad_anterior=cantidad_anterior,
 			cantidad_modificada=payload.cantidad_producto,
-			usuario="sistema",
-			fecha_carga_descarga=fecha_operacion
+			usuario=payload.usuario,
+			fecha_operacion=fecha_operacion,
+			motivo=payload.motivo,
 		)
-		db.add(carga)
 
 		db.commit()
 

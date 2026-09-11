@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import Any, cast
 
+from routes.registros.registrar_carga_descarga import registrar_carga_descarga
 from sql.database import get_db
-from sql.models import CargasDescargas, Pallets, PalletsProductos
+from sql.models import Pallets, PalletsProductos
 from sql.schemas import RetiroProductoRequest, RetiroProductoResponse
 
 
@@ -63,16 +64,18 @@ def retirar_producto_del_pallet(
 		if not si_quedan_productos:
 			pallet_db.estado = 0
 
-		descarga = CargasDescargas(
+		registrar_carga_descarga(
+			db=db,
 			tipo="descarga",
-			id_pallet=registro_db.id_pallet,
-			id_producto=registro_db.id_producto,
+			id_pallet=int(registro_db.id_pallet),
+			id_producto=int(registro_db.id_producto),
 			cantidad_anterior=cantidad_actual,
 			cantidad_modificada=payload.cantidad_producto,
-			usuario="sistema",
-			fecha_carga_descarga=fecha_operacion
+			usuario=payload.usuario,
+			fecha_operacion=fecha_operacion,
+			motivo=payload.motivo,
+			peso_kg=payload.peso_kg,
 		)
-		db.add(descarga)
 		db.commit()
 
 		return RetiroProductoResponse(mensaje="Producto retirado correctamente")
