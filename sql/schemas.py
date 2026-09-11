@@ -188,6 +188,16 @@ class CargaProductoResponse(BaseModel):
     mensaje: Literal["Producto cargado correctamente", "El producto no se pudo cargar correctamente"]
 
 
+class RetiroProductoRequest(BaseModel):
+    id_pallet_producto: int
+    cantidad_producto: int = Field(..., gt=0, description="Cantidad a retirar debe ser mayor a 0")
+    actualizado: datetime = Field(default_factory=datetime.now)
+
+
+class RetiroProductoResponse(BaseModel):
+    mensaje: Literal["Producto retirado correctamente", "El producto no se pudo retirar correctamente"]
+
+
 PalletResponse.model_rebuild()
 ProductoResponse.model_rebuild()
 PalletProductoResponse.model_rebuild()
